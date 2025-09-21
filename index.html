@@ -13,91 +13,18 @@
             background: #1e1e1e;
         }
         
-        .header {
-            background: #2d2d30;
-            color: #cccccc;
-            padding: 10px 20px;
-            border-bottom: 1px solid #3e3e42;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            height: 40px;
-            box-sizing: border-box;
-        }
-        
-        .header h1 {
-            margin: 0;
-            font-size: 16px;
-            font-weight: 600;
-        }
-        
-        .controls {
-            display: flex;
-            gap: 10px;
-            align-items: center;
-        }
-        
-        .btn {
-            background: #0e639c;
-            color: white;
-            border: none;
-            padding: 6px 12px;
-            border-radius: 3px;
-            cursor: pointer;
-            font-size: 12px;
-            transition: background 0.2s;
-        }
-        
-        .btn:hover {
-            background: #1177bb;
-        }
-        
-        .btn.secondary {
-            background: #3c3c3c;
-        }
-        
-        .btn.secondary:hover {
-            background: #4c4c4c;
-        }
-        
         #editor { 
             width: 100%; 
-            height: calc(100% - 60px);
-        }
-        
-        .status-bar {
-            background: #007acc;
-            color: white;
-            padding: 4px 20px;
-            font-size: 12px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+            height: 100%;
         }
     </style>
 </head>
 <body>
-    <div class="header">
-        <h1>AetherCore Editor</h1>
-        <div class="controls">
-            <button class="btn secondary" onclick="toggleWordWrap()">Toggle Word Wrap</button>
-            <button class="btn secondary" onclick="toggleMinimap()">Toggle Minimap</button>
-            <button class="btn" onclick="formatCode()">Format Code</button>
-        </div>
-    </div>
-    
     <div id="editor"></div>
-    
-    <div class="status-bar">
-        <span>Luau • Ready</span>
-        <span id="cursor-position">Ln 1, Col 1</span>
-    </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.47.0/min/vs/loader.min.js"></script>
     <script>
         let editor;
-        let wordWrapEnabled = true;
-        let minimapEnabled = true;
 
         require.config({ paths: { vs: 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.47.0/min/vs' } });
         require(['vs/editor/editor.main'], function () {
@@ -614,11 +541,6 @@
                 }
             });
 
-            editor.onDidChangeCursorPosition((e) => {
-                const position = e.position;
-                document.getElementById('cursor-position').textContent = 
-                    `Ln ${position.lineNumber}, Col ${position.column}`;
-            });
 
             editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyK, function() {
                 editor.getAction('editor.action.commentLine').run();
@@ -629,27 +551,6 @@
             });
         });
 
-        function toggleWordWrap() {
-            wordWrapEnabled = !wordWrapEnabled;
-            editor.updateOptions({
-                wordWrap: wordWrapEnabled ? 'on' : 'off'
-            });
-        }
-
-        function toggleMinimap() {
-            minimapEnabled = !minimapEnabled;
-            editor.updateOptions({
-                minimap: { enabled: minimapEnabled }
-            });
-        }
-
-        function formatCode() {
-            editor.getAction('editor.action.formatDocument').run();
-        }
-
-        window.toggleWordWrap = toggleWordWrap;
-        window.toggleMinimap = toggleMinimap;
-        window.formatCode = formatCode;
     </script>
 </body>
 </html>
