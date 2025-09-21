@@ -268,7 +268,6 @@
                 }
             });
 
-            // Auto-completion provider for Luau
             monaco.languages.registerCompletionItemProvider('luau', {
                 provideCompletionItems: function(model, position) {
                     const word = model.getWordUntilPosition(position);
@@ -280,7 +279,6 @@
                     };
 
                     const suggestions = [
-                        // Luau Keywords
                         {
                             label: 'function',
                             kind: monaco.languages.CompletionItemKind.Keyword,
@@ -346,7 +344,6 @@
                             range: range
                         },
 
-                        // Roblox Services
                         {
                             label: 'game:GetService',
                             kind: monaco.languages.CompletionItemKind.Function,
@@ -398,7 +395,6 @@
                             range: range
                         },
 
-                        // Roblox Data Types
                         {
                             label: 'Vector3.new',
                             kind: monaco.languages.CompletionItemKind.Constructor,
@@ -448,7 +444,6 @@
                             range: range
                         },
 
-                        // Common Roblox Functions
                         {
                             label: 'Instance.new',
                             kind: monaco.languages.CompletionItemKind.Constructor,
@@ -482,7 +477,6 @@
                             range: range
                         },
 
-                        // Luau Type Annotations
                         {
                             label: 'type',
                             kind: monaco.languages.CompletionItemKind.Keyword,
@@ -500,7 +494,6 @@
                             range: range
                         },
 
-                        // Common Lua Functions
                         {
                             label: 'print',
                             kind: monaco.languages.CompletionItemKind.Function,
@@ -542,7 +535,6 @@
                             range: range
                         },
 
-                        // Table functions
                         {
                             label: 'table.insert',
                             kind: monaco.languages.CompletionItemKind.Function,
