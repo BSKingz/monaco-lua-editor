@@ -3,26 +3,356 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Monaco Editor with Lua/Luau Support</title>
+    <title>AetherCore Monaco-Editor - Luau IDE</title>
     <style>
-        body, html { margin: 0; padding: 0; height: 100%; }
-        #editor { width: 100%; height: 100%; }
+        body, html { 
+            margin: 0; 
+            padding: 0; 
+            height: 100%; 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #1e1e1e;
+        }
+        
+        .header {
+            background: #2d2d30;
+            color: #cccccc;
+            padding: 10px 20px;
+            border-bottom: 1px solid #3e3e42;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 40px;
+            box-sizing: border-box;
+        }
+        
+        .header h1 {
+            margin: 0;
+            font-size: 16px;
+            font-weight: 600;
+        }
+        
+        .controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        
+        .btn {
+            background: #0e639c;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: background 0.2s;
+        }
+        
+        .btn:hover {
+            background: #1177bb;
+        }
+        
+        .btn.secondary {
+            background: #3c3c3c;
+        }
+        
+        .btn.secondary:hover {
+            background: #4c4c4c;
+        }
+        
+        #editor { 
+            width: 100%; 
+            height: calc(100% - 60px);
+        }
+        
+        .status-bar {
+            background: #007acc;
+            color: white;
+            padding: 4px 20px;
+            font-size: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
     </style>
 </head>
 <body>
+    <div class="header">
+        <h1>AetherCore Editor</h1>
+        <div class="controls">
+            <button class="btn secondary" onclick="toggleWordWrap()">Toggle Word Wrap</button>
+            <button class="btn secondary" onclick="toggleMinimap()">Toggle Minimap</button>
+            <button class="btn" onclick="formatCode()">Format Code</button>
+        </div>
+    </div>
+    
     <div id="editor"></div>
+    
+    <div class="status-bar">
+        <span>Luau • Ready</span>
+        <span id="cursor-position">Ln 1, Col 1</span>
+    </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.47.0/min/vs/loader.min.js"></script>
     <script>
+        let editor;
+        let wordWrapEnabled = true;
+        let minimapEnabled = true;
+
         require.config({ paths: { vs: 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.47.0/min/vs' } });
         require(['vs/editor/editor.main'], function () {
-            const editor = monaco.editor.create(document.getElementById('editor'), {
-                value: `-- Example Lua/Luau code\nlocal message = "Hello, World!"\nprint(message)\n\n-- Luau type annotation (similar syntax)\nlocal function add(a: number, b: number): number\n    return a + b\nend`,
-                language: 'lua',  // Built-in Lua mode (works for Luau basics)
-                theme: 'vs-dark', // Dark theme
-                automaticLayout: true // Auto-resizes
+            
+            monaco.editor.defineTheme('aethercore-dark', {
+                base: 'vs-dark',
+                inherit: true,
+                rules: [
+                    { token: 'comment', foreground: '6A9955', fontStyle: 'italic' },
+                    { token: 'keyword', foreground: '569CD6', fontStyle: 'bold' },
+                    { token: 'string', foreground: 'CE9178' },
+                    { token: 'number', foreground: 'B5CEA8' },
+                    { token: 'regexp', foreground: 'D16969' },
+                    { token: 'type', foreground: '4EC9B0' },
+                    { token: 'class', foreground: '4EC9B0' },
+                    { token: 'function', foreground: 'DCDCAA' },
+                    { token: 'variable', foreground: '9CDCFE' },
+                    { token: 'constant', foreground: '4FC1FF' },
+                    { token: 'property', foreground: '9CDCFE' },
+                    { token: 'operator', foreground: 'D4D4D4' },
+                    { token: 'delimiter', foreground: 'D4D4D4' }
+                ],
+                colors: {
+                    'editor.background': '#0d1117',
+                    'editor.foreground': '#e6edf3',
+                    'editor.lineHighlightBackground': '#161b22',
+                    'editor.selectionBackground': '#264f78',
+                    'editor.inactiveSelectionBackground': '#3a3d41',
+                    'editorCursor.foreground': '#ffffff',
+                    'editorWhitespace.foreground': '#404040',
+                    'editorLineNumber.foreground': '#6e7681',
+                    'editorLineNumber.activeForeground': '#f0f6fc'
+                }
+            });
+
+            monaco.languages.register({ id: 'luau' });
+            
+            monaco.languages.setMonarchTokensProvider('luau', {
+                keywords: [
+                    'and', 'break', 'do', 'else', 'elseif', 'end', 'false', 'for', 'function',
+                    'if', 'in', 'local', 'nil', 'not', 'or', 'repeat', 'return', 'then',
+                    'true', 'until', 'while', 'continue', 'export', 'type'
+                ],
+                
+                builtins: [
+                    'assert', 'collectgarbage', 'error', 'getfenv', 'getmetatable', 'ipairs',
+                    'load', 'loadstring', 'next', 'pairs', 'pcall', 'print', 'rawequal',
+                    'rawget', 'rawset', 'select', 'setfenv', 'setmetatable', 'tonumber',
+                    'tostring', 'type', 'unpack', 'xpcall', 'require', 'typeof', 'warn'
+                ],
+                
+                robloxGlobals: [
+                    'game', 'workspace', 'script', 'shared', 'plugin', '_G', '_VERSION',
+                    'Enum', 'Instance', 'Vector2', 'Vector3', 'CFrame', 'UDim', 'UDim2',
+                    'Color3', 'BrickColor', 'Ray', 'Faces', 'Axes', 'Region3', 'Region3int16',
+                    'NumberSequence', 'NumberSequenceKeypoint', 'ColorSequence', 'ColorSequenceKeypoint',
+                    'NumberRange', 'Rect', 'PhysicalProperties', 'Random', 'DateTime', 'TweenInfo'
+                ],
+                
+                operators: [
+                    '=', '>', '<', '!', '~', '?', ':', '==', '<=', '>=', '!=',
+                    '&&', '||', '++', '--', '+', '-', '*', '/', '&', '|', '^', '%',
+                    '<<', '>>', '>>>', '+=', '-=', '*=', '/=', '&=', '|=', '^=',
+                    '%=', '<<=', '>>=', '>>>='
+                ],
+
+                symbols: /[=><!~?:&|+\-*\/\^%]+/,
+                escapes: /\\(?:[abfnrtv\\"']|x[0-9A-Fa-f]{1,4}|u[0-9A-Fa-f]{4}|U[0-9A-Fa-f]{8})/,
+
+                tokenizer: {
+                    root: [
+                        [/[a-zA-Z_]\w*/, {
+                            cases: {
+                                '@keywords': 'keyword',
+                                '@builtins': 'type',
+                                '@robloxGlobals': 'constant',
+                                '@default': 'identifier'
+                            }
+                        }],
+                        
+                        [/[A-Z][\w\$]*/, 'type.identifier'],
+                        
+                        { include: '@whitespace' },
+                        
+                        [/[{}()\[\]]/, '@brackets'],
+                        [/[<>](?!@symbols)/, '@brackets'],
+                        [/@symbols/, {
+                            cases: {
+                                '@operators': 'operator',
+                                '@default': ''
+                            }
+                        }],
+                        
+                        [/\d*\.\d+([eE][\-+]?\d+)?/, 'number.float'],
+                        [/0[xX][0-9a-fA-F]+/, 'number.hex'],
+                        [/\d+/, 'number'],
+                        
+                        [/[;,.]/, 'delimiter'],
+                        
+                        [/"([^"\\]|\\.)*$/, 'string.invalid'],
+                        [/'([^'\\]|\\.)*$/, 'string.invalid'],
+                        [/"/, 'string', '@string."'],
+                        [/'/, 'string', '@string.\''],
+                        [/\[\[/, 'string', '@string_multiline'],
+                    ],
+
+                    string: [
+                        [/[^\\"']+/, 'string'],
+                        [/@escapes/, 'string.escape'],
+                        [/\\./, 'string.escape.invalid'],
+                        [/["']/, {
+                            cases: {
+                                '$#==$S2': { token: 'string', next: '@pop' },
+                                '@default': 'string'
+                            }
+                        }]
+                    ],
+                    
+                    string_multiline: [
+                        [/[^\]]+/, 'string'],
+                        [/\]\]/, 'string', '@pop'],
+                        [/\]/, 'string']
+                    ],
+
+                    whitespace: [
+                        [/[ \t\r\n]+/, 'white'],
+                        [/--\[\[/, 'comment', '@comment_multiline'],
+                        [/--.*$/, 'comment'],
+                    ],
+                    
+                    comment_multiline: [
+                        [/[^\]]+/, 'comment'],
+                        [/\]\]/, 'comment', '@pop'],
+                        [/\]/, 'comment']
+                    ],
+                }
+            });
+
+            monaco.languages.setLanguageConfiguration('luau', {
+                comments: {
+                    lineComment: '--',
+                    blockComment: ['--[[', ']]']
+                },
+                brackets: [
+                    ['{', '}'],
+                    ['[', ']'],
+                    ['(', ')']
+                ],
+                autoClosingPairs: [
+                    { open: '{', close: '}' },
+                    { open: '[', close: ']' },
+                    { open: '(', close: ')' },
+                    { open: '"', close: '"' },
+                    { open: "'", close: "'" },
+                ],
+                surroundingPairs: [
+                    { open: '{', close: '}' },
+                    { open: '[', close: ']' },
+                    { open: '(', close: ')' },
+                    { open: '"', close: '"' },
+                    { open: "'", close: "'" },
+                ],
+                folding: {
+                    markers: {
+                        start: new RegExp("^\\s*--\\s*#region\\b"),
+                        end: new RegExp("^\\s*--\\s*#endregion\\b")
+                    }
+                }
+            });
+
+            const sampleCode = `-- AetherCore Monaco-Editor`;
+
+            editor = monaco.editor.create(document.getElementById('editor'), {
+                value: sampleCode,
+                language: 'luau',
+                theme: 'aethercore-dark',
+                automaticLayout: true,
+                
+                wordWrap: 'on',
+                wordWrapColumn: 120,
+                wrappingIndent: 'indent',
+                
+                fontSize: 14,
+                fontFamily: 'Consolas, "Courier New", monospace',
+                lineHeight: 20,
+                letterSpacing: 0.5,
+                
+                suggestOnTriggerCharacters: true,
+                acceptSuggestionOnEnter: 'on',
+                tabCompletion: 'on',
+                wordBasedSuggestions: true,
+                
+                minimap: { enabled: true },
+                scrollBeyondLastLine: false,
+                smoothScrolling: true,
+                cursorBlinking: 'smooth',
+                cursorSmoothCaretAnimation: true,
+                
+                formatOnPaste: true,
+                formatOnType: true,
+                autoIndent: 'full',
+                
+                matchBrackets: 'always',
+                foldingStrategy: 'indentation',
+                showFoldingControls: 'always',
+                
+                lineNumbers: 'on',
+                lineNumbersMinChars: 3,
+                rulers: [], 
+                
+                selectOnLineNumbers: true,
+                selectionHighlight: true,
+                occurrencesHighlight: true,
+                find: {
+                    seedSearchStringFromSelection: true,
+                    autoFindInSelection: 'never'
+                }
+            });
+
+            editor.onDidChangeCursorPosition((e) => {
+                const position = e.position;
+                document.getElementById('cursor-position').textContent = 
+                    `Ln ${position.lineNumber}, Col ${position.column}`;
+            });
+
+            editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyK, function() {
+                editor.getAction('editor.action.commentLine').run();
+            });
+            
+            editor.addCommand(monaco.KeyMod.Alt | monaco.KeyMod.Shift | monaco.KeyCode.KeyF, function() {
+                editor.getAction('editor.action.formatDocument').run();
             });
         });
+
+        function toggleWordWrap() {
+            wordWrapEnabled = !wordWrapEnabled;
+            editor.updateOptions({
+                wordWrap: wordWrapEnabled ? 'on' : 'off'
+            });
+        }
+
+        function toggleMinimap() {
+            minimapEnabled = !minimapEnabled;
+            editor.updateOptions({
+                minimap: { enabled: minimapEnabled }
+            });
+        }
+
+        function formatCode() {
+            editor.getAction('editor.action.formatDocument').run();
+        }
+
+        window.toggleWordWrap = toggleWordWrap;
+        window.toggleMinimap = toggleMinimap;
+        window.formatCode = formatCode;
     </script>
 </body>
 </html>
