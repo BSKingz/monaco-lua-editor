@@ -268,6 +268,311 @@
                 }
             });
 
+            // Auto-completion provider for Luau
+            monaco.languages.registerCompletionItemProvider('luau', {
+                provideCompletionItems: function(model, position) {
+                    const word = model.getWordUntilPosition(position);
+                    const range = {
+                        startLineNumber: position.lineNumber,
+                        endLineNumber: position.lineNumber,
+                        startColumn: word.startColumn,
+                        endColumn: word.endColumn
+                    };
+
+                    const suggestions = [
+                        // Luau Keywords
+                        {
+                            label: 'function',
+                            kind: monaco.languages.CompletionItemKind.Keyword,
+                            insertText: 'function ${1:name}(${2:params})\n\t${3:-- code here}\nend',
+                            insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+                            documentation: 'Define a new function',
+                            range: range
+                        },
+                        {
+                            label: 'local function',
+                            kind: monaco.languages.CompletionItemKind.Keyword,
+                            insertText: 'local function ${1:name}(${2:params})\n\t${3:-- code here}\nend',
+                            insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+                            documentation: 'Define a local function',
+                            range: range
+                        },
+                        {
+                            label: 'if',
+                            kind: monaco.languages.CompletionItemKind.Keyword,
+                            insertText: 'if ${1:condition} then\n\t${2:-- code here}\nend',
+                            insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+                            documentation: 'If statement',
+                            range: range
+                        },
+                        {
+                            label: 'for',
+                            kind: monaco.languages.CompletionItemKind.Keyword,
+                            insertText: 'for ${1:i} = ${2:1}, ${3:10} do\n\t${4:-- code here}\nend',
+                            insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+                            documentation: 'Numeric for loop',
+                            range: range
+                        },
+                        {
+                            label: 'for in pairs',
+                            kind: monaco.languages.CompletionItemKind.Keyword,
+                            insertText: 'for ${1:key}, ${2:value} in pairs(${3:table}) do\n\t${4:-- code here}\nend',
+                            insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+                            documentation: 'Iterate over table with pairs',
+                            range: range
+                        },
+                        {
+                            label: 'for in ipairs',
+                            kind: monaco.languages.CompletionItemKind.Keyword,
+                            insertText: 'for ${1:index}, ${2:value} in ipairs(${3:array}) do\n\t${4:-- code here}\nend',
+                            insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+                            documentation: 'Iterate over array with ipairs',
+                            range: range
+                        },
+                        {
+                            label: 'while',
+                            kind: monaco.languages.CompletionItemKind.Keyword,
+                            insertText: 'while ${1:condition} do\n\t${2:-- code here}\nend',
+                            insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+                            documentation: 'While loop',
+                            range: range
+                        },
+                        {
+                            label: 'repeat',
+                            kind: monaco.languages.CompletionItemKind.Keyword,
+                            insertText: 'repeat\n\t${1:-- code here}\nuntil ${2:condition}',
+                            insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+                            documentation: 'Repeat until loop',
+                            range: range
+                        },
+
+                        // Roblox Services
+                        {
+                            label: 'game:GetService',
+                            kind: monaco.languages.CompletionItemKind.Function,
+                            insertText: 'game:GetService("${1:ServiceName}")',
+                            insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+                            documentation: 'Get a Roblox service',
+                            range: range
+                        },
+                        {
+                            label: 'Players',
+                            kind: monaco.languages.CompletionItemKind.Class,
+                            insertText: 'game:GetService("Players")',
+                            documentation: 'Players service - manages player connections',
+                            range: range
+                        },
+                        {
+                            label: 'Workspace',
+                            kind: monaco.languages.CompletionItemKind.Class,
+                            insertText: 'game:GetService("Workspace")',
+                            documentation: 'Workspace service - contains the 3D world',
+                            range: range
+                        },
+                        {
+                            label: 'ReplicatedStorage',
+                            kind: monaco.languages.CompletionItemKind.Class,
+                            insertText: 'game:GetService("ReplicatedStorage")',
+                            documentation: 'ReplicatedStorage service - shared between client and server',
+                            range: range
+                        },
+                        {
+                            label: 'TweenService',
+                            kind: monaco.languages.CompletionItemKind.Class,
+                            insertText: 'game:GetService("TweenService")',
+                            documentation: 'TweenService - for smooth animations',
+                            range: range
+                        },
+                        {
+                            label: 'RunService',
+                            kind: monaco.languages.CompletionItemKind.Class,
+                            insertText: 'game:GetService("RunService")',
+                            documentation: 'RunService - for frame-based events',
+                            range: range
+                        },
+                        {
+                            label: 'UserInputService',
+                            kind: monaco.languages.CompletionItemKind.Class,
+                            insertText: 'game:GetService("UserInputService")',
+                            documentation: 'UserInputService - handle user input',
+                            range: range
+                        },
+
+                        // Roblox Data Types
+                        {
+                            label: 'Vector3.new',
+                            kind: monaco.languages.CompletionItemKind.Constructor,
+                            insertText: 'Vector3.new(${1:x}, ${2:y}, ${3:z})',
+                            insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+                            documentation: 'Create a new Vector3',
+                            range: range
+                        },
+                        {
+                            label: 'Vector2.new',
+                            kind: monaco.languages.CompletionItemKind.Constructor,
+                            insertText: 'Vector2.new(${1:x}, ${2:y})',
+                            insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+                            documentation: 'Create a new Vector2',
+                            range: range
+                        },
+                        {
+                            label: 'CFrame.new',
+                            kind: monaco.languages.CompletionItemKind.Constructor,
+                            insertText: 'CFrame.new(${1:position})',
+                            insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+                            documentation: 'Create a new CFrame',
+                            range: range
+                        },
+                        {
+                            label: 'Color3.new',
+                            kind: monaco.languages.CompletionItemKind.Constructor,
+                            insertText: 'Color3.new(${1:r}, ${2:g}, ${3:b})',
+                            insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+                            documentation: 'Create a new Color3 (RGB values 0-1)',
+                            range: range
+                        },
+                        {
+                            label: 'Color3.fromRGB',
+                            kind: monaco.languages.CompletionItemKind.Function,
+                            insertText: 'Color3.fromRGB(${1:r}, ${2:g}, ${3:b})',
+                            insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+                            documentation: 'Create Color3 from RGB values (0-255)',
+                            range: range
+                        },
+                        {
+                            label: 'UDim2.new',
+                            kind: monaco.languages.CompletionItemKind.Constructor,
+                            insertText: 'UDim2.new(${1:scaleX}, ${2:offsetX}, ${3:scaleY}, ${4:offsetY})',
+                            insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+                            documentation: 'Create a new UDim2 for GUI positioning',
+                            range: range
+                        },
+
+                        // Common Roblox Functions
+                        {
+                            label: 'Instance.new',
+                            kind: monaco.languages.CompletionItemKind.Constructor,
+                            insertText: 'Instance.new("${1:ClassName}")',
+                            insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+                            documentation: 'Create a new Roblox instance',
+                            range: range
+                        },
+                        {
+                            label: 'wait',
+                            kind: monaco.languages.CompletionItemKind.Function,
+                            insertText: 'wait(${1:seconds})',
+                            insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+                            documentation: 'Wait for specified seconds',
+                            range: range
+                        },
+                        {
+                            label: 'spawn',
+                            kind: monaco.languages.CompletionItemKind.Function,
+                            insertText: 'spawn(function()\n\t${1:-- code here}\nend)',
+                            insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+                            documentation: 'Run code in a new thread',
+                            range: range
+                        },
+                        {
+                            label: 'coroutine.create',
+                            kind: monaco.languages.CompletionItemKind.Function,
+                            insertText: 'coroutine.create(function()\n\t${1:-- code here}\nend)',
+                            insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+                            documentation: 'Create a new coroutine',
+                            range: range
+                        },
+
+                        // Luau Type Annotations
+                        {
+                            label: 'type',
+                            kind: monaco.languages.CompletionItemKind.Keyword,
+                            insertText: 'type ${1:TypeName} = {\n\t${2:field}: ${3:type}\n}',
+                            insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+                            documentation: 'Define a new type',
+                            range: range
+                        },
+                        {
+                            label: 'export type',
+                            kind: monaco.languages.CompletionItemKind.Keyword,
+                            insertText: 'export type ${1:TypeName} = ${2:type}',
+                            insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+                            documentation: 'Export a type from module',
+                            range: range
+                        },
+
+                        // Common Lua Functions
+                        {
+                            label: 'print',
+                            kind: monaco.languages.CompletionItemKind.Function,
+                            insertText: 'print(${1:value})',
+                            insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+                            documentation: 'Print value to output',
+                            range: range
+                        },
+                        {
+                            label: 'warn',
+                            kind: monaco.languages.CompletionItemKind.Function,
+                            insertText: 'warn(${1:message})',
+                            insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+                            documentation: 'Print warning message',
+                            range: range
+                        },
+                        {
+                            label: 'error',
+                            kind: monaco.languages.CompletionItemKind.Function,
+                            insertText: 'error(${1:message})',
+                            insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+                            documentation: 'Throw an error',
+                            range: range
+                        },
+                        {
+                            label: 'pcall',
+                            kind: monaco.languages.CompletionItemKind.Function,
+                            insertText: 'local success, result = pcall(${1:function}, ${2:args})',
+                            insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+                            documentation: 'Protected call - catch errors',
+                            range: range
+                        },
+                        {
+                            label: 'typeof',
+                            kind: monaco.languages.CompletionItemKind.Function,
+                            insertText: 'typeof(${1:value})',
+                            insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+                            documentation: 'Get type of value (Luau enhanced)',
+                            range: range
+                        },
+
+                        // Table functions
+                        {
+                            label: 'table.insert',
+                            kind: monaco.languages.CompletionItemKind.Function,
+                            insertText: 'table.insert(${1:table}, ${2:value})',
+                            insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+                            documentation: 'Insert value into table',
+                            range: range
+                        },
+                        {
+                            label: 'table.remove',
+                            kind: monaco.languages.CompletionItemKind.Function,
+                            insertText: 'table.remove(${1:table}, ${2:index})',
+                            insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+                            documentation: 'Remove value from table',
+                            range: range
+                        },
+                        {
+                            label: 'table.sort',
+                            kind: monaco.languages.CompletionItemKind.Function,
+                            insertText: 'table.sort(${1:table})',
+                            insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+                            documentation: 'Sort table in place',
+                            range: range
+                        }
+                    ];
+
+                    return { suggestions: suggestions };
+                }
+            });
+
             const sampleCode = `-- AetherCore Monaco-Editor`;
 
             editor = monaco.editor.create(document.getElementById('editor'), {
