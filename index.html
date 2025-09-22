@@ -23,11 +23,16 @@
     <div id="editor"></div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.47.0/min/vs/loader.min.js"></script>
+    <script src="./api-parser.js"></script>
     <script>
         let editor;
+        let apiParser;
 
         require.config({ paths: { vs: 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.47.0/min/vs' } });
-        require(['vs/editor/editor.main'], function () {
+        require(['vs/editor/editor.main'], async function () {
+            
+            apiParser = new APIDocumentationParser();
+            const apiCompletions = await apiParser.loadAPIDocumentation();
             
             monaco.editor.defineTheme('aethercore-dark', {
                 base: 'vs-dark',
@@ -43,6 +48,8 @@
                     { token: 'function', foreground: 'DCDCAA' },
                     { token: 'variable', foreground: '9CDCFE' },
                     { token: 'constant', foreground: '4FC1FF' },
+                    { token: 'constant.other.color', foreground: 'FF6B6B' },
+                    { token: 'support.function', foreground: 'FFB86C' },
                     { token: 'property', foreground: '9CDCFE' },
                     { token: 'operator', foreground: 'D4D4D4' },
                     { token: 'delimiter', foreground: 'D4D4D4' }
@@ -84,6 +91,16 @@
                     'NumberRange', 'Rect', 'PhysicalProperties', 'Random', 'DateTime', 'TweenInfo'
                 ],
                 
+                apiLibraries: [
+                    'cache', 'crypt', 'debug', 'Drawing', 'filesystem', 'input', 'instances',
+                    'metatable', 'misc', 'scripts', 'WebSocket', 'console',
+                    
+                    'Closures', 'Cryptography', 'Environment', 'Metatables', 'Miscellaneous',
+                    'Reflection', 'Scripts', 'Signals', 'Websocket'
+                ],
+                
+                apiGlobals: [],
+                
                 operators: [
                     '=', '>', '<', '!', '~', '?', ':', '==', '<=', '>=', '!=',
                     '&&', '||', '++', '--', '+', '-', '*', '/', '&', '|', '^', '%',
@@ -101,6 +118,8 @@
                                 '@keywords': 'keyword',
                                 '@builtins': 'type',
                                 '@robloxGlobals': 'constant',
+                                '@apiLibraries': 'constant.other.color',
+                                '@apiGlobals': 'support.function',
                                 '@default': 'identifier'
                             }
                         }],
@@ -194,6 +213,15 @@
                     }
                 }
             });
+
+            if (apiParser && apiParser.getGlobalAPIFunctions().length > 0) {
+                const apiGlobals = apiParser.getGlobalAPIFunctions();
+                console.log('[ INFO ] Adding', apiGlobals.length, 'API globals to language definition');
+                
+                const currentTokenizer = monaco.languages.getLanguages().find(lang => lang.id === 'luau');
+                if (currentTokenizer) {
+                }
+            }
 
             monaco.languages.registerCompletionItemProvider('luau', {
                 provideCompletionItems: function(model, position) {
@@ -488,11 +516,24 @@
                         }
                     ];
 
+                    if (apiParser && apiParser.apiCompletions.length > 0) {
+                        const wordText = word.word || '';
+                        const apiSuggestions = apiParser.getCompletionsForPrefix(wordText);
+                        
+                        apiSuggestions.forEach(suggestion => {
+                            suggestion.range = range;
+                        });
+                        
+                        suggestions.push(...apiSuggestions);
+                        
+                        console.log('[ INFO ] Added', apiSuggestions.length, 'API completions for prefix:', wordText);
+                    }
+
                     return { suggestions: suggestions };
                 }
             });
 
-            const sampleCode = `-- AetherCore Monaco-Editor`;
+            const sampleCode = `-- AetherCore Executor Monaco-Editor`;
 
             editor = monaco.editor.create(document.getElementById('editor'), {
                 value: sampleCode,
@@ -549,6 +590,8 @@
             editor.addCommand(monaco.KeyMod.Alt | monaco.KeyMod.Shift | monaco.KeyCode.KeyF, function() {
                 editor.getAction('editor.action.formatDocument').run();
             });
+            
+            console.log('[ SUCCESS ] AetherCore Monaco Editor initialized with API documentation support!');
         });
 
     </script>

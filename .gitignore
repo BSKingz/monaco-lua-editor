@@ -1,0 +1,13 @@
+test-api.html
+
+node_modules/
+
+dist/
+build/
+
+.vscode/
+*.swp
+*.swo
+
+.DS_Store
+Thumbs.db
